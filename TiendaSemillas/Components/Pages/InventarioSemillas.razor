@@ -1,0 +1,141 @@
+﻿@page "/registro-semillas"
+@rendermode InteractiveServer
+
+<h3>Registro de productos (Semillas)</h3>
+
+<div class="mb-3">
+    <label>No. de inventario</label>
+    <input type="number" class="form-control" @bind="numeroInventario" />
+</div>
+
+<div class="mb-3">
+    <label>Descripción</label>
+    <input type="text" class="form-control" @bind="descripcion" placeholder="Escribe la descripción del producto" />
+</div>
+
+<div class="mb-3">
+    <label>Departamento</label><br />
+    <input type="radio" name="depto" value="Cereales" @onchange="ActualizarDepto" checked="@(departamento == "Cereales")" /> Cereales
+    <input type="radio" name="depto" value="Hortalizas" @onchange="ActualizarDepto" checked="@(departamento == "Hortalizas")" /> Hortalizas
+    <input type="radio" name="depto" value="Leguminosas" @onchange="ActualizarDepto" checked="@(departamento == "Leguminosas")" /> Leguminosas
+</div>
+
+<!-- Mensaje de error para validación -->
+@if (!string.IsNullOrEmpty(mensajeError))
+{
+    <div class="alert alert-danger">@mensajeError</div>
+}
+
+<div class="mb-4">
+    <button class="btn btn-primary" @onclick="GuardarDatos">Guardar datos</button>
+    <button class="btn btn-success" @onclick="MostrarCompleta">Lista completa</button>
+    <button class="btn btn-success" @onclick="MostrarCereales">Lista de cereales</button>
+    <button class="btn btn-success" @onclick="MostrarHortalizas">Lista de hortalizas</button>
+    <button class="btn btn-success" @onclick="MostrarLeguminosas">Lista de leguminosas</button>
+</div>
+
+@if (mostrarTabla)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>No. Inventario</th>
+                <th>Descripción</th>
+                <th>Departamento</th>
+            </tr>
+        </thead>
+        <tbody>
+            @* Se recorren las listas paralelas con un ciclo for normal *@
+            @for (int i = 0; i < inventarios.Count; i++)
+            {
+                // Si el filtro es "Todos" o coincide con el departamento en la posición i, se muestra
+                if (filtroActual == "Todos" || departamentos[i] == filtroActual)
+                {
+                    <tr>
+                        <td>@inventarios[i]</td>
+                        <td>@descripciones[i]</td>
+                        <td>@departamentos[i]</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    
+    <button class="btn btn-danger" @onclick="CerrarLista">Cerrar lista</button>
+}
+
+@code {
+    // Variables de captura
+    private int numeroInventario = 0;
+    private string descripcion = "";
+    private string departamento = "Cereales"; // Valor por defecto
+    private string mensajeError = "";
+
+    // Listas Paralelas (Sustituyen a las clases)
+    private List<int> inventarios = new();
+    private List<string> descripciones = new();
+    private List<string> departamentos = new();
+
+    // Variables para el control de la vista (Filtros y tabla)
+    private bool mostrarTabla = false;
+    private string filtroActual = "Todos";
+
+    // Método para capturar el cambio del radio button
+    private void ActualizarDepto(ChangeEventArgs e)
+    {
+        departamento = e.Value.ToString();
+    }
+
+    // Funcionalidad de Guardar Datos
+    private void GuardarDatos()
+    {
+        // Restricción: Validar que el número de inventario no se repita
+        if (inventarios.Contains(numeroInventario))
+        {
+            mensajeError = "Error: El número de inventario ya existe en los registros.";
+            return;
+        }
+
+        // Almacenar en memoria en las listas paralelas
+        inventarios.Add(numeroInventario);
+        descripciones.Add(descripcion);
+        departamentos.Add(departamento);
+
+        // Limpiar los campos para poder capturar otro producto
+        numeroInventario = 0;
+        descripcion = "";
+        departamento = "Cereales";
+        mensajeError = "";
+    }
+
+    // Funcionalidad de los botones de Listas
+    private void MostrarCompleta()
+    {
+        mostrarTabla = true;
+        filtroActual = "Todos";
+    }
+
+    private void MostrarCereales()
+    {
+        mostrarTabla = true;
+        filtroActual = "Cereales";
+    }
+
+    private void MostrarHortalizas()
+    {
+        mostrarTabla = true;
+        filtroActual = "Hortalizas";
+    }
+
+    private void MostrarLeguminosas()
+    {
+        mostrarTabla = true;
+        filtroActual = "Leguminosas";
+    }
+
+    // Botón Cerrar lista
+    private void CerrarLista()
+    {
+        mostrarTabla = false;
+    }
+}
